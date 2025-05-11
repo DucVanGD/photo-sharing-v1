@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Typography, Card, CardMedia, CardContent } from "@mui/material";
-import models from "../../modelData/models";
+import fetchModel from "../../lib/fetchModelData";
 import "./styles.css";
 
 function UserPhotos() {
   const { userId } = useParams();
-  const photos = models.photoOfUserModel(userId); 
+  const [photos, setPhotos] = useState([]);
+
+  useEffect(() => {
+    fetchModel(`photo/photosOfUser/${userId}`)
+      .then((data) => setPhotos(data))
+      .catch((err) => console.error("Error fetching user photos:", err));
+  }, [userId]);
 
   if (!photos || photos.length === 0) {
     return (
@@ -22,7 +28,7 @@ function UserPhotos() {
         <Card key={photo._id} className="photo-card">
           <CardMedia
             component="img"
-            image={`/images/${photo.file_name}`}
+            image={`/images/${photo.file_name}`} // Cập nhật đường dẫn ảnh hợp lý
             alt={photo.file_name}
             className="photo-image"
           />
@@ -31,7 +37,7 @@ function UserPhotos() {
               Uploaded at: {new Date(photo.date_time).toLocaleString()}
             </Typography>
 
-            {photo.comments && photo.comments.length > 0 && (
+            {photo.comments && photo.comments.length > 0 ? (
               <div className="photo-comments-section">
                 {photo.comments.map((comment) => (
                   <div key={comment._id} className="comment-card">
@@ -47,6 +53,10 @@ function UserPhotos() {
                   </div>
                 ))}
               </div>
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                No comments yet.
+              </Typography>
             )}
           </CardContent>
         </Card>
